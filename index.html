@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Task Runner</title>
+    <style>
+        /* Same styles as before */
+    </style>
+</head>
+<body>
+    <h1>Task Runner</h1>
+    <div style="text-align: center;">
+        <label for="task">Task:</label>
+       <select id="task">
+           	<option value="subfinder">subfinder - Subdomain Enumeration</option>
+                <option value="amass">amass - Subdomain Enumeration</option>
+                <option value="sublist3r">sublist3r - Subdomain Enumeration</option>
+                <option value="knockpy">knockpy - Subdomain Enumeration</option>
+                <option value="dnsenum">dnsenum - Subdomain Enumeration</option>
+                <option value="waybackurls">waybackurls - URL Discovery</option>
+                <option value="hakrawler">hakrawler - URL Discovery</option>
+                <option value="katana">katana - URL Discovery</option>
+                <option value="aquatone">aquatone - URL Discovery</option>
+                <option value="whois">whois - DNS and WHOIS</option>
+                <option value="dnsrecon">dnsrecon - DNS and WHOIS</option>
+                <option value="extract_ips">extract_ips - DNS and WHOIS</option>
+                <option value="fierce">fierce - DNS and WHOIS</option>
+                <option value="dirsearch">dirsearch - Web Scanning</option>
+                <option value="dirb">dirb - Web Scanning</option>
+                <option value="gobuster">gobuster - Web Scanning</option>
+                <option value="nikto">nikto - Web Scanning</option>
+                <option value="whatweb">whatweb - Web Scanning</option>
+                <option value="bucket_finder">bucket_finder - Cloud and S3</option>
+                <option value="cloudflair">CloudFlair - Cloud and S3</option>
+                <option value="teh_s3_bucketeers">teh_s3_bucketeers - Cloud and S3</option>
+                <option value="s3recon">s3recon - Cloud and S3</option>
+                <option value="waf_detection">waf_detection - WAF Detection</option>
+                <option value="arjun">arjun - Content Discovery</option>
+                <option value="wfuzz">wfuzz - Content Discovery</option>
+                <option value="nmap">nmap - Vulnerability Scanning</option>
+                <option value="nuclei">nuclei - Vulnerability Scanning</option>
+                <option value="sqlmap">sqlmap - Vulnerability Scanning</option>
+                <option value="dalfox">dalfox - Vulnerability Scanning</option>
+                <option value="xsstrike">XSStrike - Vulnerability Scanning</option>
+                <option value="wpscan">wpscan - CMS Scanning</option>
+                <option value="joomscan">joomscan - CMS Scanning</option>
+                <option value="commix">commix - Exploitation</option>
+                <option value="dotdotpwn">dotdotpwn - Exploitation</option>
+                <option value="thc-hydra">thc-hydra - Exploitation</option>
+                <option value="recon-ng">recon-ng - Reconnaissance</option>
+                <option value="theHarvester">theHarvester - Reconnaissance</option>
+                <option value="masscan">masscan - Other Tools</option>
+                <option value="massdns">massdns - Other Tools</option>
+        </select>
+        <br><br>
+        <label for="domain">Domain:</label>
+        <input type="text" id="domain" placeholder="Enter domain">
+        <br><br>
+        <button onclick="startTask()">Start Task</button>
+    </div>
+
+    <div class="output-container" id="output"></div>
+
+    <script>
+        let ws;
+
+        const outputDiv = document.getElementById('output');
+
+        function startTask() {
+           const task = document.getElementById("task").value; // Should be "subdomains"
+	   const domain = document.getElementById("domain").value;
+
+            outputDiv.textContent = '';
+
+            if (!domain) {
+                showError("Please enter a domain.");
+                return;
+            }
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.close();
+            }
+
+            ws = new WebSocket('ws://localhost:8080/run');
+            
+            ws.onopen = function () {
+                const message = {
+    		task: task, // e.g., "subdomains"
+    		domain: domain // e.g., "example.com"
+		};
+		ws.send(JSON.stringify(message));
+                outputDiv.innerHTML += '<div class="success">Task started...</div>';
+            };
+
+            ws.onmessage = function (event) {
+                outputDiv.textContent += event.data + '\n';
+                outputDiv.scrollTop = outputDiv.scrollHeight;
+            };
+
+            ws.onerror = function (error) {
+                console.error('WebSocket Error:', error);
+                showError('WebSocket error: ' + error.message);
+            };
+
+            ws.onclose = function () {
+                console.log("WebSocket connection closed.");
+            };
+        }
+
+        function showError(message) {
+            outputDiv.innerHTML = `<span class="error">${message}</span>`;
+        }
+    </script>
+</body>
+</html>
