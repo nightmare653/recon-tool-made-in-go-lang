@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Task Runner</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #1e1e1e;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            color: #ccc;
+        }
+        .container {
+            background: #2e2e2e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+            width: 600px;
+            text-align: center;
+        }
+        h1 {
+            color: #4CAF50;
+        }
+        select, input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #444;
+            border-radius: 5px;
+            background-color: #1e1e1e;
+            color: #ccc;
+        }
+        input::placeholder {
+            color: #666;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .output-container {
+            margin-top: 20px;
+            background: #000;
+            color: #0f0;
+            padding: 15px;
+            border-radius: 5px;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', Courier, monospace;
+            text-align: left;
+            border: 1px solid #444;
+        }
+        .output-line {
+            margin: 0;
+            padding: 2px 0;
+        }
+        .output-line.error {
+            color: #f00;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Task Runner</h1>
+        <select id="task">
+           <option value="subfinder">subfinder - Subdomain Enumeration</option>
+                <option value="amass">amass - Subdomain Enumeration</option>
+                <option value="sublist3r">sublist3r - Subdomain Enumeration</option>
+                <option value="knockpy">knockpy - Subdomain Enumeration</option>
+                <option value="dnsenum">dnsenum - Subdomain Enumeration</option>
+                <option value="waybackurls">waybackurls - URL Discovery</option>
+                <option value="hakrawler">hakrawler - URL Discovery</option>
+                <option value="katana">katana - URL Discovery</option>
+                <option value="aquatone">aquatone - URL Discovery</option>
+                <option value="whois">whois - DNS and WHOIS</option>
+                <option value="dnsrecon">dnsrecon - DNS and WHOIS</option>
+                <option value="extract_ips">extract_ips - DNS and WHOIS</option>
+                <option value="fierce">fierce - DNS and WHOIS</option>
+                <option value="dirsearch">dirsearch - Web Scanning</option>
+                <option value="dirb">dirb - Web Scanning</option>
+                <option value="gobuster">gobuster - Web Scanning</option>
+                <option value="nikto">nikto - Web Scanning</option>
+                <option value="whatweb">whatweb - Web Scanning</option>
+                <option value="bucket_finder">bucket_finder - Cloud and S3</option>
+                <option value="cloudflair">CloudFlair - Cloud and S3</option>
+                <option value="teh_s3_bucketeers">teh_s3_bucketeers - Cloud and S3</option>
+                <option value="s3recon">s3recon - Cloud and S3</option>
+                <option value="waf_detection">waf_detection - WAF Detection</option>
+                <option value="arjun">arjun - Content Discovery</option>
+                <option value="wfuzz">wfuzz - Content Discovery</option>
+                <option value="nmap">nmap - Vulnerability Scanning</option>
+                <option value="nuclei">nuclei - Vulnerability Scanning</option>
+                <option value="sqlmap">sqlmap - Vulnerability Scanning</option>
+                <option value="dalfox">dalfox - Vulnerability Scanning</option>
+                <option value="xsstrike">XSStrike - Vulnerability Scanning</option>
+                <option value="wpscan">wpscan - CMS Scanning</option>
+                <option value="joomscan">joomscan - CMS Scanning</option>
+                <option value="commix">commix - Exploitation</option>
+                <option value="dotdotpwn">dotdotpwn - Exploitation</option>
+                <option value="thc-hydra">thc-hydra - Exploitation</option>
+                <option value="recon-ng">recon-ng - Reconnaissance</option>
+                <option value="theHarvester">theHarvester - Reconnaissance</option>
+                <option value="masscan">masscan - Other Tools</option>
+                <option value="massdns">massdns - Other Tools</option>
+        </select>
+        <input type="text" id="domain" placeholder="Enter domain">
+        <button onclick="startTask()">Run</button>
+        <div class="output-container" id="output"></div>
+    </div>
+
+    <script>
+        let ws;
+        const outputDiv = document.getElementById("output");
+
+        function startTask() {
+            const task = document.getElementById("task").value;
+            const domain = document.getElementById("domain").value;
+
+            if (!domain) {
+                appendOutput("Error: Please enter a domain.", true);
+                return;
+            }
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.close();
+            }
+
+            ws = new WebSocket("ws://localhost:8080/run");
+
+            ws.onopen = () => {
+                ws.send(JSON.stringify({ task, domain }));
+                appendOutput("Task started...", false);
+            };
+
+            ws.onmessage = (event) => {
+                appendOutput(event.data, false);
+            };
+
+            ws.onerror = (error) => {
+                appendOutput("WebSocket error: " + error.message, true);
+            };
+
+            ws.onclose = () => {
+                appendOutput("WebSocket connection closed.", false);
+            };
+        }
+
+        function appendOutput(message, isError) {
+            const line = document.createElement("div");
+            line.textContent = message;
+            line.className = isError ? "error output-line" : "output-line";
+            outputDiv.appendChild(line);
+            outputDiv.scrollTop = outputDiv.scrollHeight;
+        }
+    </script>
+</body>
+</html>
